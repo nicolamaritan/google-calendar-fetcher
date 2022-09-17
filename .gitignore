@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # Google API
-google_calendar_checker/token.json
-google_calendar_checker/credentials.json
+google_calendar_fetcher/token.json
+google_calendar_fetcher/credentials.json
