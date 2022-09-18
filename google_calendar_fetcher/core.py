@@ -63,6 +63,8 @@ class gcalendar_fetcher:
                                 month = date.month,
                                 day = date.day,
                                 ) - self.offset   # Subtract time zone offset
+                                #)
+        #print(date_day, self.offset)
         date_post_day = date_day + datetime.timedelta(days = 1) # gets tomorrow
         
         # Create today and tomorrow in iso format for list argument
@@ -114,6 +116,23 @@ class gcalendar_fetcher:
         one_day = datetime.timedelta(days=1)
         self.show_events(datetime.datetime.utcnow() + one_day)
         return
+
+    def show_next_days_events(self, days):
+
+        for i in range(1, days + 1):
+            # Each iteration it invokes the show_events method adding one day
+            self.show_events(datetime.datetime.utcnow() + datetime.timedelta(days=i))
+
+    def show_week_events(self):
+
+        day = datetime.datetime.utcnow()
+
+        while True:
+            self.show_events(day)   # show events
+            day += datetime.timedelta(days=1)   # adds one day
+
+            if day.weekday() == 0:  # If the next day is monday then break
+                break
 
     def show_all_birthdays(self):
 
@@ -168,6 +187,9 @@ def main():
     # args.d's type is datetime.datetime
     parser.add_argument("-d", type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), help="Date in the format YYYY-MM-DD.")
     parser.add_argument("-b", action="store_true", help="Show all birthdays from now to an year.")
+    parser.add_argument("-n", type=int, help="Show events for the next n days.")
+    parser.add_argument("--next", type=int, help="Show events for the next n days.")
+    parser.add_argument("-w", action="store_true", help="Show all events of the remaining week days, today included.")
 
     args = parser.parse_args()
 
@@ -207,8 +229,15 @@ def main():
         if (args.tomorrow or args.tm):
             fetcher.show_tomorrow_events()
 
+        if (args.n or args.next):
+            fetcher.show_next_days_events(args.n)
+
+        if (args.w):
+            fetcher.show_week_events()
+
         if (args.b):
             fetcher.show_all_birthdays()
+            
 
         
 
