@@ -1,4 +1,5 @@
 # Google Calendar API
+from ast import arg
 import string
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -114,6 +115,48 @@ class gcalendar_fetcher:
         self.show_events(datetime.datetime.utcnow() + one_day)
         return
 
+    def show_all_birthdays(self):
+
+        # Gets all Caledars info
+        # calendars_id = self.service.calendarList().list().execute()["items"]
+        # for c in calendars_id:
+        #    print(c, "\n\n")
+
+
+        date = datetime.datetime.now()
+        date_day = datetime.datetime(year = date.year,
+                                    month = date.month,
+                                    day = date.day,
+                                ) - self.offset   # Subtract time zone offset
+        date_year_later = date_day + datetime.timedelta(days=365) # gets one year later
+        
+        # Create the dates in iso format for list argument
+        date_day_iso = date_day.isoformat() + 'Z'
+        date_year_later_iso = date_year_later.isoformat() + 'Z'
+
+        # Gets all event between now and one year apart in birthday calendar
+        events_result = self.service.events().list(calendarId = "addressbook#contacts@group.v.calendar.google.com",
+                                            timeMin = date_day_iso,
+                                            timeMax = date_year_later_iso,
+                                            singleEvents=True,
+                                            orderBy='startTime').execute()
+
+
+        event_list = events_result.get("items", [])
+
+        for event in event_list:
+            #print(event, "\n\n")
+            full_name = event["gadget"]["preferences"]["goo.contactsFullName"]
+            
+            date = event["start"]["date"]
+            # split date separating tokens with - and cast them to integer type
+            year, month, day = [int(x) for x in date.split("-")] 
+            # get difference in days
+            delta = datetime.date(year, month, day) - datetime.date.today()
+
+            print("*", color(full_name, "light_yellow"), "on", color(date, "light_cyan"), "(in " + str(delta.days) + " days)")
+            
+
 
 def main():
 
@@ -121,8 +164,10 @@ def main():
     parser.add_argument("-t", action="store_true", help="Show today events.")
     parser.add_argument("--today", action="store_true", help="Show today events.")
     parser.add_argument("--tomorrow", action="store_true", help="Show tomorrow events.")
+    parser.add_argument("-tm", action="store_true", help="Show tomorrow events.")
     # args.d's type is datetime.datetime
     parser.add_argument("-d", type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), help="Date in the format YYYY-MM-DD.")
+    parser.add_argument("-b", action="store_true", help="Show all birthdays from now to an year.")
 
     args = parser.parse_args()
 
@@ -146,8 +191,6 @@ def main():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-
-    
     
 
     try:
@@ -161,8 +204,11 @@ def main():
         if (args.d):
             fetcher.show_events(args.d)
 
-        if (args.tomorrow):
+        if (args.tomorrow or args.tm):
             fetcher.show_tomorrow_events()
+
+        if (args.b):
+            fetcher.show_all_birthdays()
 
         
 
