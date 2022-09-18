@@ -31,6 +31,7 @@ def color(string, fore, style="normal"):
                    "light_cyan"   : Fore.LIGHTCYAN_EX,
                    "light_white"  : Fore.LIGHTWHITE_EX,
                    "light_red"    : Fore.LIGHTRED_EX,
+                   "light_green"  : Fore.LIGHTGREEN_EX,
                     }
     styles = {"bright" : Style.BRIGHT,
               "normal" : Style.NORMAL}
@@ -77,7 +78,7 @@ class gcalendar_fetcher:
         events = events_result.get('items', [])
 
         if not events:
-            print(color("No upcoming events found at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_red", "bright"))
+            print(color("No upcoming events found at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_green", "bright"))
             return
 
         # Display red title
@@ -107,70 +108,11 @@ class gcalendar_fetcher:
         self.show_events(datetime.datetime.utcnow())
         return
 
-
-
-
-# def show_events(service, date):
-
-#     # Get timezone from the calendar
-#     calendar_timezone = service.calendars().get(calendarId="primary").execute()["timeZone"]
-    
-#     # Get utc offset
-#     local_timezone = pytz.timezone(calendar_timezone)
-#     aware = local_timezone.localize(datetime.datetime.now())
-#     offset = aware.utcoffset()
-#     #print(type(localtz))
-#     #print(offset, type(offset))
-
-#     date_day = datetime.datetime(year = date.year,
-#                               month = date.month,
-#                               day = date.day,
-#                               ) - offset   # Subtract time zone offset
-#     date_post_day = date_day + datetime.timedelta(days = 1) # gets tomorrow
-    
-#     # Create today and tomorrow in iso format for list argument
-#     date_day_iso = date_day.isoformat() + 'Z'
-#     date_post_day_iso = date_post_day.isoformat() + 'Z'
-
-#     # Gets all event between date_day and tomorrow
-#     events_result = service.events().list(calendarId = "primary",
-#                                           timeMin = date_day_iso,
-#                                           timeMax = date_post_day_iso,
-#                                           singleEvents=True,
-#                                           orderBy='startTime').execute()
-#     # List of events in the calendar
-#     events = events_result.get('items', [])
-
-#     if not events:
-#         print(color("No upcoming events found at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_red", "bright"))
-#         return
-
-#     # Display red title
-#     print(color("Events at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_red", "bright"))
-#     for event in events:
-#         TIME_LOWERBOUND_IN_STRING = 11
-#         TIME_UPPERBOUND_IN_STRING = 16
-
-#         start_time = event["start"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
-#         end_time = event["end"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
+    def show_tomorrow_events(self):
         
-#         time_interval = "[" + start_time + ", " + end_time + "]"
-        
-#         print("*", color(event["summary"], "light_yellow", "bright"), ":", time_interval, end="")
-        
-#         # Tries to find a location: if not found it throws an exception
-#         try:
-#             location = event["location"]
-#             print(" at " + color(location, "light_cyan"), end="")
-#         except Exception as e:
-#             pass
-
-#         print("\n", end="") 
-
-# def show_today_events(service):
-
-#     show_events(service, datetime.datetime.utcnow())
-#     return
+        one_day = datetime.timedelta(days=1)
+        self.show_events(datetime.datetime.utcnow() + one_day)
+        return
 
 
 def main():
@@ -178,6 +120,8 @@ def main():
     parser = argparse.ArgumentParser(description="Google Calendar Util via CLI.")
     parser.add_argument("-t", action="store_true", help="Show today events.")
     parser.add_argument("--today", action="store_true", help="Show today events.")
+    parser.add_argument("--tomorrow", action="store_true", help="Show tomorrow events.")
+    # args.d's type is datetime.datetime
     parser.add_argument("-d", type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'), help="Date in the format YYYY-MM-DD.")
 
     args = parser.parse_args()
@@ -210,14 +154,17 @@ def main():
 
         service = build("calendar", "v3", credentials=creds)
         fetcher = gcalendar_fetcher(service=service)
-        #print(service.calendarList())
+        
         if (args.t or args.today):
-            #show_today_events(service)
             fetcher.show_today_events()
         
         if (args.d):
-            #show_events(service, args.d)
             fetcher.show_events(args.d)
+
+        if (args.tomorrow):
+            fetcher.show_tomorrow_events()
+
+        
 
     except HttpError as http_error:
         print('An error occurred: %s' % http_error)
