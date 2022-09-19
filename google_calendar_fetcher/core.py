@@ -81,12 +81,14 @@ class gcalendar_fetcher:
         events = events_result.get('items', [])
 
         if not events:
-            print(color("No upcoming events found at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_green", "bright"))
+            print(color("No upcoming events found at " + calendar.day_name[date_post_day.weekday()] + " " + str(date)[0:10], "light_green", "bright"))
             return
 
         # Display red title
         print(color("Events at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_red", "bright"))
         for event in events:
+            #print(event, "\n\n")
+
             TIME_LOWERBOUND_IN_STRING = 11
             TIME_UPPERBOUND_IN_STRING = 16
 
@@ -103,6 +105,11 @@ class gcalendar_fetcher:
                 print(" at " + color(location, "light_cyan"), end="")
             except Exception as e:
                 pass
+        
+            missing_days = self.get_missing_days(event["start"]["dateTime"])
+            missing_days_string = color(" (Today)", "light_red", "bright") if missing_days == 0 else " (in " + str(missing_days) + " days)"
+            
+            print(missing_days_string, end="")
 
             print("\n", end="") 
 
@@ -119,7 +126,7 @@ class gcalendar_fetcher:
 
     def show_next_days_events(self, days):
 
-        for i in range(1, days + 1):
+        for i in range(0, days):
             # Each iteration it invokes the show_events method adding one day
             self.show_events(datetime.datetime.utcnow() + datetime.timedelta(days=i))
 
@@ -167,14 +174,20 @@ class gcalendar_fetcher:
             #print(event, "\n\n")
             full_name = event["gadget"]["preferences"]["goo.contactsFullName"]
             
-            date = event["start"]["date"]
-            # split date separating tokens with - and cast them to integer type
-            year, month, day = [int(x) for x in date.split("-")] 
-            # get difference in days
-            delta = datetime.date(year, month, day) - datetime.date.today()
+            date = event["start"]["date"]            
+            missing_days = self.get_missing_days(event["start"]["date"])
+            missing_days_string = color("(Today)", "light_red", "bright") if missing_days == 0 else "(in " + str(missing_days) + " days)"
 
-            print("*", color(full_name, "light_yellow"), "on", color(date, "light_cyan"), "(in " + str(delta.days) + " days)")
+            print("*", color(full_name, "light_yellow"), "on", color(date, "light_cyan"), missing_days_string)
             
+    def get_missing_days(self, date_string):
+        YYYY_MM_DD_STRING_LENGHT = 10
+        date = date_string[0:YYYY_MM_DD_STRING_LENGHT]
+        # split date separating tokens with - and cast them to integer type
+        year, month, day = [int(x) for x in date.split("-")] 
+        # get difference in days
+        delta = datetime.date(year, month, day) - datetime.date.today()
+        return delta.days
 
 
 def main():
