@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='google-calendar-fetcher',
-    version="1.0",
+    version="1.0.1",
     packages=find_packages(),
     author="nicolamaritan",
     url='https://github.com/nicolamaritan/google_calendar_fetcher/',
