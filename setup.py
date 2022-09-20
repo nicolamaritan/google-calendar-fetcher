@@ -11,7 +11,7 @@ setup(
     entry_points = {'console_scripts': ['gcfetch = google_calendar_fetcher.core:main']},
     install_requires=["google",
                       "google_auth_oauthlib",
-                      "googleapiclient",
+                      #"googleapiclient",
                       "pytz",
                       "colorama",
                       ],
