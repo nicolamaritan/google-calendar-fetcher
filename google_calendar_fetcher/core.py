@@ -215,22 +215,33 @@ def main():
     SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
     creds = None
 
+    # -------------------- Get directory info --------------------
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    credentials_file = os.path.join(dir_path, "credentials.json")
+    token_path = os.path.join(dir_path, "token.json")
+
     # -------------------- Get Credentials --------------------
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+            try:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    credentials_file, SCOPES)
+            except FileNotFoundError as fnfe:
+                print("File credentials.json not found.")
+                print("Follow Prerequisites at https://developers.google.com/calendar/api/quickstart/python.")
+                print("Put the credentials.json file in", credentials_file)
+                exit()
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open('token.json', 'w') as token:
+        with open(token_path, 'w') as token:
             token.write(creds.to_json())
     
 
