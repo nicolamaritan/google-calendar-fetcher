@@ -3,7 +3,7 @@
 Python script to quickly obtain upcoming events and birthdays from your Google Calendar via CLI.
 
 ## Install
-Via PyPI:
+Through PyPI:
 
 ```
 pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
