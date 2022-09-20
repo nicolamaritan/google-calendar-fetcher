@@ -1,6 +1,4 @@
 # Google Calendar API
-from ast import arg
-import string
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -118,7 +116,7 @@ class gcalendar_fetcher:
                 location_string = ""
 
             # ---------- Print event info ----------
-            print("*", color(event["summary"], "light_yellow", "bright"), ":", time_interval, location_string, missing_days_string, end="\n", sep=" ")
+            print("*", color(event["summary"], "light_yellow"), ":", time_interval, location_string, missing_days_string, end="\n", sep=" ")
 
     def show_today_events(self):
 
