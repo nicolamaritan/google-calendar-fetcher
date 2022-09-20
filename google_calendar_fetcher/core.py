@@ -87,31 +87,38 @@ class gcalendar_fetcher:
         # Display red title
         print(color("Events at " + calendar.day_name[date.weekday()] + " " + str(date)[0:10], "light_red", "bright"))
         for event in events:
-            #print(event, "\n\n")
 
-            TIME_LOWERBOUND_IN_STRING = 11
-            TIME_UPPERBOUND_IN_STRING = 16
+            # ---------- Get time info ----------
+            # event["start"] contains "dateTime" key only if the event is NOT the whole day therefore has start time and end time
+            if "dateTime" in event["start"].keys():
 
-            start_time = event["start"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
-            end_time = event["end"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
+                TIME_LOWERBOUND_IN_STRING = 11
+                TIME_UPPERBOUND_IN_STRING = 16
+                start_time = event["start"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
+                end_time = event["end"].get("dateTime")[TIME_LOWERBOUND_IN_STRING:TIME_UPPERBOUND_IN_STRING]
+                time_interval = "[" + start_time + ", " + end_time + "]"
+                missing_days = self.get_missing_days(event["start"]["dateTime"])
+            # event["start"] contains "date" key only if the event is the whole day
+            elif "date" in event["start"].keys():
+
+                time_interval = "[Whole day]"
+                missing_days = self.get_missing_days(event["start"]["date"])
+            else:
+                time_interval = "[Error retrieving time interval]"
+
+            # ---------- Get missing days info ----------
+            missing_days_string = color("(Today)", "light_red", "bright") if missing_days == 0 else "(in " + str(missing_days) + " days)"
             
-            time_interval = "[" + start_time + ", " + end_time + "]"
-            
-            print("*", color(event["summary"], "light_yellow", "bright"), ":", time_interval, end="")
-            
-            # Tries to find a location: if not found it throws an exception
-            try:
+            # ---------- Get location info ----------
+            if "location" in event.keys():
                 location = event["location"]
-                print(" at " + color(location, "light_cyan"), end="")
-            except Exception as e:
-                pass
-        
-            missing_days = self.get_missing_days(event["start"]["dateTime"])
-            missing_days_string = color(" (Today)", "light_red", "bright") if missing_days == 0 else " (in " + str(missing_days) + " days)"
-            
-            print(missing_days_string, end="")
+                location_string = "at " + color(location, "light_cyan")
+                #print(" at " + color(location, "light_cyan"), end="")
+            else:
+                location_string = ""
 
-            print("\n", end="") 
+            # ---------- Print event info ----------
+            print("*", color(event["summary"], "light_yellow", "bright"), ":", time_interval, location_string, missing_days_string, end="\n", sep=" ")
 
     def show_today_events(self):
 
@@ -188,6 +195,7 @@ class gcalendar_fetcher:
         # get difference in days
         delta = datetime.date(year, month, day) - datetime.date.today()
         return delta.days
+
 
 
 def main():
