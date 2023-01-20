@@ -134,3 +134,6 @@ google_calendar_fetcher/token.json
 google_calendar_fetcher/credentials.json
 token.json
 credentials.json
+
+#Other
+.core.py.swp

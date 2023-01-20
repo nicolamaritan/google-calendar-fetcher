@@ -146,14 +146,7 @@ class gcalendar_fetcher:
             if day.weekday() == 0:  # If the next day is monday then break
                 break
 
-    def show_all_birthdays(self):
-
-        # Gets all Caledars info
-        # calendars_id = self.service.calendarList().list().execute()["items"]
-        # for c in calendars_id:
-        #    print(c, "\n\n")
-
-
+    def get_birthdays_event_list(self):
         date = datetime.datetime.now()
         date_day = datetime.datetime(year = date.year,
                                     month = date.month,
@@ -174,9 +167,11 @@ class gcalendar_fetcher:
 
 
         event_list = events_result.get("items", [])
+        return event_list
 
-        for event in event_list:
-            #print(event, "\n\n")
+
+    def print_birthday(self, event):
+ 
             full_name = event["gadget"]["preferences"]["goo.contactsFullName"]
             
             date = event["start"]["date"]            
@@ -185,6 +180,25 @@ class gcalendar_fetcher:
 
             print("*", color(full_name, "light_yellow"), "on", color(date, "light_cyan"), missing_days_string)
             
+
+
+    def show_birthday(self, searched_full_name):
+        event_list = self.get_birthdays_event_list()
+
+        for event in event_list:
+            full_name = event["gadget"]["preferences"]["goo.contactsFullName"]
+            
+            if searched_full_name in full_name:
+                self.print_birthday(event)
+
+
+    def show_all_birthdays(self):
+        event_list = self.get_birthdays_event_list()
+
+        for event in event_list:
+            self.print_birthday(event)
+            
+
     def get_missing_days(self, date_string):
         YYYY_MM_DD_STRING_LENGHT = 10
         date = date_string[0:YYYY_MM_DD_STRING_LENGHT]
@@ -209,6 +223,7 @@ def main():
     parser.add_argument("-n", type=int, help="Show events for the next n days.")
     parser.add_argument("--next", type=int, help="Show events for the next n days.")
     parser.add_argument("-w", action="store_true", help="Show all events of the remaining week days, today included.")
+    parser.add_argument("-bof", type=str, help="Show birthday of a contact containing a pattern")
 
     args = parser.parse_args()
 
@@ -268,7 +283,8 @@ def main():
         if (args.b):
             fetcher.show_all_birthdays()
             
-
+        if (args.bof):
+            fetcher.show_birthday(args.bof)
         
 
     except HttpError as http_error:
